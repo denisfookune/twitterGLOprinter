@@ -456,11 +456,12 @@ void printChar(char raw_c){
  printCharIndex(index);
 }
 
-void printMessage(char message[], int messageLen){
+void printMessage(String message){
   // 
   int i = 0;
+  int messageLen = message.length();
   for(i = 0; i < messageLen; i++){
-    printChar(message[i]);
+    printChar(message.charAt(i));
   }
 }
 
@@ -477,13 +478,8 @@ void loop() {
     }
   } else {
     // Print a message
-    //int messageSize = 9;
-    //char testMessage[] = "Hello World";
-    char testMessage[] = "Hey sexy!!!!";
-    int messageSize = strlen(testMessage);
-    
-    printMessage(testMessage, messageSize);
-    
+    String message = String("Hello GLO Printer.");      
+    printMessage(message);
   }
 
   
