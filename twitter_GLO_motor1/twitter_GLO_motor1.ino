@@ -392,7 +392,10 @@ int interchar_delay = 50;//in ms
 // Constants for the motor drive
 int motor1 = 11;
 int motor2 = 12;
-int motor_direction = 1;// Forward
+#define MOTOR_FORWARD 1
+#define MOTOR_BACKWARD -1
+#define MOTOR_STOP 0
+int motor_direction = MOTOR_FORWARD;// Forward
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -424,21 +427,21 @@ float read_bumper_voltage()
 
 void go_forward()
 {
-  motor_direction = 1;
+  motor_direction = MOTOR_FORWARD;
   digitalWrite(motor1, LOW);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, HIGH);   // turn the LED on (HIGH is the voltage level)
 }
 
 void go_backwards()
 {
-  motor_direction = -1;
+  motor_direction = MOTOR_BACKWARD;
   digitalWrite(motor1, HIGH);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, LOW);   // turn the LED on (HIGH is the voltage level)
 }
 
 void go_stop()
 {
-  motor_direction = 0;
+  motor_direction = MOTOR_STOP;
   digitalWrite(motor1, LOW);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, LOW);   // turn the LED on (HIGH is the voltage level)
 }
@@ -548,12 +551,15 @@ int wait_for_message()
   
   int index = 0;
   char inChar = 0x00;
-  while(Serial.available() > 0) // Don't read unless
-                                // there you know there is data
+  
+  // Read all data available until the predefined limit.
+  while(Serial.available() > 0) 
    {
-       if(index < MAX_CHARS) // One less than the size of the array
+       inChar = Serial.read(); // consumes a character
+
+      // Store only if we are within allowed bounds
+       if(index < (MAX_CHARS -1)) 
        {
-           inChar = Serial.read(); // Read a character
            serial_message[index] = inChar; // Store it
            index++; // Increment where to write next
        }
@@ -565,53 +571,31 @@ int wait_for_message()
 }
 
 
-int doTest = 0;
-
 // the loop routine runs over and over again forever:
 void loop() {
-  
   unsigned int message_size = 0;
+
+  // Waits for a message to come over the serial port
+  // When this returns, we have a null terminated string in our global variable
   message_size = wait_for_message();
-  // When this returns, we have a string in our global variable
-  if(message_size >= MAX_CHARS){
-    message_size = MAX_CHARS - 1;
-  }
-  serial_message[message_size] = 0x00;// Null terminates the string, just in case.
   
   // Starts the motor in the appropriate direction
   go_forward();
   
-  if(doTest == 1){
-    int chars = 0;
-    // Loops through all the characters, one at a time.
-    for(chars = 0; chars < 64; chars++){
-      // Scans each line from the current character
-      printCharIndex(chars);
-    }
-  } else {
-    // Print a message
-    String message = String(serial_message);      
-    printMessage(message);
-  }
+  // Print the message
+  String message = String(serial_message);      
+  printMessage(message);
+  go_backwards();// Return home after a message is printed
   
-  if(motor_direction == -1)
-  {
-    // Loop until we trip on the home bump
-    while(check_bumper_stop() == 0);
-  } else {
-    // Loop until we trip on the far bump    
-    while(check_bumper_reverse() == 0);
-    // Loop until we trip on the home bump
-    while(check_bumper_stop() == 0);
+  // Loop until we trip on the home bump
+  while(check_bumper_stop() == 0);
     
-    // Reset the position
-    go_forward();
-    delay(500);
-    go_stop();
-  }
-  delay(100000);// TODO:  Wait for next command
+  // Reset the position
+  go_forward();
+  delay(500);
+  go_stop();
 
-  
+  // Loop back to wait for the next message  
 }
 
 
