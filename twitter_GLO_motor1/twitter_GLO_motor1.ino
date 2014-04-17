@@ -390,12 +390,14 @@ int led_offset = 3;// Starting pin number for LEDs on the Arduino Mega
 int interchar_delay = 50;//in ms
 
 // Constants for the motor drive
-int motor1 = 11;
-int motor2 = 12;
 #define MOTOR_FORWARD 1
 #define MOTOR_BACKWARD -1
 #define MOTOR_STOP 0
+int motor1 = 11;
+int motor2 = 12;
 int motor_direction = MOTOR_FORWARD;// Forward
+#define BUMPER_VOLTAGE_LEVEL 1.00
+
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -427,6 +429,7 @@ float read_bumper_voltage()
 
 void go_forward()
 {
+  Serial.write("going forward.\n");
   motor_direction = MOTOR_FORWARD;
   digitalWrite(motor1, LOW);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -434,6 +437,7 @@ void go_forward()
 
 void go_backwards()
 {
+  Serial.write("going backwards.\n");
   motor_direction = MOTOR_BACKWARD;
   digitalWrite(motor1, HIGH);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, LOW);   // turn the LED on (HIGH is the voltage level)
@@ -441,6 +445,7 @@ void go_backwards()
 
 void go_stop()
 {
+  Serial.write("motor stop.\n");
   motor_direction = MOTOR_STOP;
   digitalWrite(motor1, LOW);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, LOW);   // turn the LED on (HIGH is the voltage level)
@@ -450,7 +455,7 @@ void go_stop()
 // TODO:  Turn everything off when reversing.
 int check_bumper_reverse() {
   int retval = 0;
-  if(read_bumper_voltage() < 2){
+  if(read_bumper_voltage() < BUMPER_VOLTAGE_LEVEL){
   // We hit an obstacle
   // Reverse direction
     go_backwards();
@@ -462,10 +467,17 @@ int check_bumper_reverse() {
 
 int check_bumper_stop() {
   int retval = 0;
-  if(read_bumper_voltage() < 2){
+  if(read_bumper_voltage() < BUMPER_VOLTAGE_LEVEL){
     // We hit an obstacle
-    go_stop();
+    if(motor_direction == MOTOR_FORWARD)
+    {
+      go_backwards();
+    } else if(motor_direction == MOTOR_BACKWARD){
+      go_forward();
+    }
+    // The default case, do nothing.
     delay(500); //Wait until we're out of range of obstacle
+    go_stop();
     retval = 1;
   }
   return retval;
@@ -504,7 +516,7 @@ void printCharIndex(int index){
     setLEDLine(font[(index * 5) + line]);
     delay(interchar_delay);
     // Checks if we reached the end while printing.
-    check_bumper_reverse();
+    check_bumper_stop();
    }
    allLEDOff();
    delay(interchar_delay);  
@@ -520,7 +532,7 @@ void printChar(char raw_c){
  } else if((raw_c > 0x40) && (raw_c < 0x5B)){
    // Is it an upper case letter?
    index = (raw_c - 0x41) + 10;// Accounts for the 10 numbers that are before the upper case letters
- } else if((raw_c > 0x61) && (raw_c < 0x7B)){
+ } else if((raw_c >= 0x61) && (raw_c < 0x7B)){
    // Is it a lower case letter?
    index = (raw_c - 0x61) + 10 + 26;// Accounts for the 10 numbers and upper case letters that come before the lower case letters.
  } else {
@@ -535,6 +547,7 @@ void printMessage(String message){
   int i = 0;
   int messageLen = message.length();
   for(i = 0; i < messageLen; i++){
+    Serial.write(message.charAt(i));
     printChar(message.charAt(i));
   }
 }
@@ -566,7 +579,6 @@ int wait_for_message()
    }
    
    serial_message[index] = '\0'; // Null terminate the string
-   Serial.write(serial_message);
    return index;
 }
 
@@ -579,13 +591,15 @@ void loop() {
   // When this returns, we have a null terminated string in our global variable
   message_size = wait_for_message();
   
-  // Starts the motor in the appropriate direction
+  // Starts the motor to move while printing
   go_forward();
+  delay(1500);// Wait to get to the glowing band first.
   
   // Print the message
   String message = String(serial_message);      
+  Serial.write(serial_message);
   printMessage(message);
-  go_backwards();// Return home after a message is printed
+  go_backwards();// Reverse motor to return home after a message is printed
   
   // Loop until we trip on the home bump
   while(check_bumper_stop() == 0);
