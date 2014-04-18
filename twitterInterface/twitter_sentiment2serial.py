@@ -22,6 +22,7 @@ from calculation import *
 import serial
 # Needed for sleep() to test the LED cube
 import time
+import random
 
 # Global to tell the program if there is an arduino board attached to the serial port
 serial_on = 1
@@ -77,7 +78,7 @@ def getLEDCoordinates(valence, arousal, dominance):
 #         print 'running' + data
 
 class StreamListener(tweepy.StreamListener):
-    status_wrapper = TextWrapper(width=60, initial_indent='    ', subsequent_indent='    ')
+    status_wrapper = TextWrapper(width=140, initial_indent='', subsequent_indent='    ')
     def on_status(self, status):
         try:
             tweetText =  self.status_wrapper.fill(status.text)
@@ -85,20 +86,15 @@ class StreamListener(tweepy.StreamListener):
             #print '\n %s  %s  via %s\n' % (status.author.screen_name, status.created_at, status.source)
             # TODO:  Do the ANEW calculations here, then send it to the LED cube.
             #print "Raw Tweet:", tweetText
-            print "Tweet", len(tweetText)
-            curSentiment = getAnewSentiment(tweetText)
-            if curSentiment != None:
-                if serial_on:
-                    # Gets the coordinates for the LED cube
-                    a = getLEDCoordinates(curSentiment['valence'], curSentiment['arousal'], curSentiment['dominance'])
-                    serStr = '%i%i%i' % (a[0], a[1], a[2])
-                    #if(a[0] >= 1):
-                    ser.write(tweetText)
-                # prints stuff for fun
-                print "==> Tweet:", tweetText
-                print "Sentiment:",curSentiment
-                print "LED coordinates (valence=layer, arousal=x dominance=y):", serStr
-                
+            print "  ", tweetText
+            #asciitweet = unicodedata.normalize('NFKD', tweetText).encode('ascii','ignore')
+            asciitweet = tweetText.encode('ascii', 'ignore')
+            myrand = random.random()
+            if myrand < 0.01:
+                print "Printing to GLO:", asciitweet
+                ser.write(asciitweet)
+            else:
+                print myrand
         except Exception, e:
             # Catch any unicode errors while printing to console
             # and just ignore them to avoid breaking application.
