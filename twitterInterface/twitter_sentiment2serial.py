@@ -28,7 +28,7 @@ import random
 serial_on = 1
 # configures the serial port
 if serial_on:
-    ser = serial.Serial('/dev/tty.usbmodem1421', 9600)
+    ser = serial.Serial('/dev/tty.usbmodem1411', 9600)
 
 
 # Translates the measurements into cube coordinates
@@ -90,11 +90,13 @@ class StreamListener(tweepy.StreamListener):
             #asciitweet = unicodedata.normalize('NFKD', tweetText).encode('ascii','ignore')
             asciitweet = tweetText.encode('ascii', 'ignore')
             myrand = random.random()
-            if myrand < 0.01:
-                print "Printing to GLO:", asciitweet
-                ser.write(asciitweet)
-            else:
-                print myrand
+            print "Printing to GLO:", asciitweet
+            ser.write(asciitweet)
+            # if myrand < 0.05:
+            #     print "Printing to GLO:", asciitweet
+            #     ser.write(asciitweet)
+            # else:
+            #     print myrand
         except Exception, e:
             # Catch any unicode errors while printing to console
             # and just ignore them to avoid breaking application.
@@ -135,6 +137,9 @@ def main():
     # VirtaLabs
     #setTerms = ['@virtalabs']
 
+    # Glow Printer
+    #setTerms = ['#gloprinter']
+    setTerms = ['#annarbor', '#gloprinter']
 
     l = StreamListener()
     try:
@@ -146,8 +151,8 @@ def main():
     # Reading the code on tweepy, it should.  File a bug report.
     # The filter() function runs a loop, unless asyn=TRUE is passed as argument.
     try:
-        #streamer.filter(track = setTerms)#, locations = locArea)
-        streamer.filter(locations = locArea)
+        streamer.filter(track = setTerms)#, locations = locArea)
+        #streamer.filter(locations = locArea)
         #streamer.firehose()
     except:
         print "error setting query."
