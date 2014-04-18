@@ -557,16 +557,23 @@ int max_chars = 256;
 char serial_message[MAX_CHARS];// Fixed size string to accomodate a 140 character tweet.
 int wait_for_message()
 {
+  // Flushes things that may have been caught in the serial buffer during the previous printjob.
+  while(Serial.available() > 0){
+    Serial.read();
+  }
+  
   while(Serial.available() == 0) // Wait for a message to arrive
   {
     delay(500);
   }
   delay(1000);// Wait for the entire message to get to the arduino board
+
   int numchars = Serial.available();
   if(numchars >= MAX_CHARS - 1 ){
       numchars = MAX_CHARS - 1;
   }
   Serial.readBytes(serial_message, numchars);
+  serial_message[numchars] = '\0'; // Null terminate the string
   
 //  int index = 0;
 //  char inChar = 0x00;
@@ -583,8 +590,12 @@ int wait_for_message()
 //           index++; // Increment where to write next
 //       }
 //   }
+
+  char flushbuffer = 0x00;
+  while(Serial.available() > 0){
+    Serial.read();
+  }
    
-   serial_message[numchars] = '\0'; // Null terminate the string
    return numchars;
 }
 
