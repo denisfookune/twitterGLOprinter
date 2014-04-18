@@ -561,25 +561,31 @@ int wait_for_message()
   {
     delay(500);
   }
+  delay(1000);// Wait for the entire message to get to the arduino board
+  int numchars = Serial.available();
+  if(numchars >= MAX_CHARS - 1 ){
+      numchars = MAX_CHARS - 1;
+  }
+  Serial.readBytes(serial_message, numchars);
   
-  int index = 0;
-  char inChar = 0x00;
-  
-  // Read all data available until the predefined limit.
-  while(Serial.available() > 0) 
-   {
-       inChar = Serial.read(); // consumes a character
-
-      // Store only if we are within allowed bounds
-       if(index < (MAX_CHARS -1)) 
-       {
-           serial_message[index] = inChar; // Store it
-           index++; // Increment where to write next
-       }
-   }
+//  int index = 0;
+//  char inChar = 0x00;
+//  
+//  // Read all data available until the predefined limit.
+//  while(Serial.available() > 0) 
+//   {
+//       inChar = Serial.read(); // consumes a character
+//
+//      // Store only if we are within allowed bounds
+//       if(index < (MAX_CHARS -1)) 
+//       {
+//           serial_message[index] = inChar; // Store it
+//           index++; // Increment where to write next
+//       }
+//   }
    
-   serial_message[index] = '\0'; // Null terminate the string
-   return index;
+   serial_message[numchars] = '\0'; // Null terminate the string
+   return numchars;
 }
 
 
@@ -608,6 +614,7 @@ void loop() {
   go_forward();
   delay(500);
   go_stop();
+  
 
   // Loop back to wait for the next message  
 }
