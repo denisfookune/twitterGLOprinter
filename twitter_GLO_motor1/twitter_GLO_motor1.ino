@@ -1,6 +1,6 @@
 // font inspired by many 5x8 fonts from various sources
 //const char font[64*5] PROGMEM = {
-const char font[64*5]  = {
+const char font[66*5]  = {
  0b01111110,
  0b10100001,
  0b10011001,
@@ -61,6 +61,12 @@ const char font[64*5]  = {
  0b10001001,
  0b01111110, //9
  
+ 0b01111110,
+ 0b10000001,
+ 0b10001001,
+ 0b10010101,
+ 0b01011110, //@ sign
+
  0b11111110,
  0b00001001,
  0b00001001,
@@ -372,6 +378,12 @@ const char font[64*5]  = {
  0b01010100,
  0b01001100,
  0b01000100, //z
+
+ 0b10101000,
+ 0b01111100,
+ 0b10101011,
+ 0b01111100,
+ 0b00101011, //'#' sign
  
  0b00000000,
  0b00000000,
@@ -526,18 +538,17 @@ void printCharIndex(int index){
 void printChar(char raw_c){
  int index = 0;
  
- if ((raw_c > 0x2F ) && (raw_c < 0x3A)){
-   // Is it an number?
-   index = raw_c - 0x30;// Maps to the font number list   
- } else if((raw_c > 0x40) && (raw_c < 0x5B)){
-   // Is it an upper case letter?
-   index = (raw_c - 0x41) + 10;// Accounts for the 10 numbers that are before the upper case letters
- } else if((raw_c >= 0x61) && (raw_c < 0x7B)){
-   // Is it a lower case letter?
-   index = (raw_c - 0x61) + 10 + 26;// Accounts for the 10 numbers and upper case letters that come before the lower case letters.
- } else {
-   // Not a valid character.  Print a space.
-   index = 62;
+ if ((raw_c > 0x2F ) && (raw_c < 0x3A)){      // Is it an number?
+   index = raw_c - 0x30;                      // Maps to the font number list   
+ } else if((raw_c > 0x3F) && (raw_c < 0x5B)){ // Is it an upper case letter?
+   index = (raw_c - 0x40) + 10;               // Accounts for the 10 numbers that are before the upper case letters
+ } else if((raw_c >= 0x61) && (raw_c < 0x7B)){// Is it a lower case letter?
+   index = (raw_c - 0x61) + 10 + 26 + 1;      // Accounts for the 10 numbers, the upper case letters and the @ sign that come before the lower case letters.
+ } else if(raw_c == 0x23){                    // The '#' sign
+   index = 63;
+ }
+ } else {                                     // Not a valid character.  Print a space.
+   index = 64;
  }
  printCharIndex(index);
 }
