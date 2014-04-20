@@ -434,7 +434,7 @@ float read_bumper_voltage()
   // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
   float voltage = sensorValue * (5.0 / 1023.0);
   // print out the value you read:
-  Serial.println(voltage);
+  //Serial.println(voltage);
   return voltage;
 
 }
@@ -464,7 +464,6 @@ void go_stop()
 }
 
 
-// TODO:  Turn everything off when reversing.
 int check_bumper_reverse() {
   int retval = 0;
   if(read_bumper_voltage() < BUMPER_VOLTAGE_LEVEL){
@@ -546,7 +545,6 @@ void printChar(char raw_c){
    index = (raw_c - 0x61) + 10 + 26 + 1;      // Accounts for the 10 numbers, the upper case letters and the @ sign that come before the lower case letters.
  } else if(raw_c == 0x23){                    // The '#' sign
    index = 63;
- }
  } else {                                     // Not a valid character.  Print a space.
    index = 64;
  }
@@ -564,7 +562,7 @@ void printMessage(String message){
 }
 
 #define MAX_CHARS 256
-#define MAX_PRINTABLE_CHARS 55
+#define MAX_PRINTABLE_CHARS 40
 int max_chars = MAX_CHARS;
 char serial_message[MAX_CHARS];// Fixed size string to accomodate a 140 character tweet.
 int wait_for_message()
@@ -617,7 +615,9 @@ void loop() {
   go_backwards();// Reverse motor to return home after a message is printed
   
   // Loop until we trip on the home bump
-  while(check_bumper_stop() == 0);
+  while(check_bumper_stop() == 0){
+    delay(100);
+  }
     
   // Reset the position
   go_forward();
