@@ -562,7 +562,7 @@ void printMessage(String message){
 }
 
 #define MAX_CHARS 256
-#define MAX_PRINTABLE_CHARS 40
+#define MAX_PRINTABLE_CHARS 38
 int max_chars = MAX_CHARS;
 char serial_message[MAX_CHARS];// Fixed size string to accomodate a 140 character tweet.
 int wait_for_message()
