@@ -429,7 +429,7 @@ float read_bumper_voltage()
 
 void go_forward()
 {
-  Serial.write("going forward.\n");
+  //Serial.write("going forward.\n");
   motor_direction = MOTOR_FORWARD;
   digitalWrite(motor1, LOW);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -437,7 +437,7 @@ void go_forward()
 
 void go_backwards()
 {
-  Serial.write("going backwards.\n");
+  //Serial.write("going backwards.\n");
   motor_direction = MOTOR_BACKWARD;
   digitalWrite(motor1, HIGH);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, LOW);   // turn the LED on (HIGH is the voltage level)
@@ -445,7 +445,7 @@ void go_backwards()
 
 void go_stop()
 {
-  Serial.write("motor stop.\n");
+  //Serial.write("motor stop.\n");
   motor_direction = MOTOR_STOP;
   digitalWrite(motor1, LOW);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(motor2, LOW);   // turn the LED on (HIGH is the voltage level)
@@ -547,13 +547,14 @@ void printMessage(String message){
   int i = 0;
   int messageLen = message.length();
   for(i = 0; i < messageLen; i++){
-    Serial.write(message.charAt(i));
+    //Serial.write(message.charAt(i));
     printChar(message.charAt(i));
   }
 }
 
-int max_chars = 256;
 #define MAX_CHARS 256
+#define MAX_PRINTABLE_CHARS 55
+int max_chars = MAX_CHARS;
 char serial_message[MAX_CHARS];// Fixed size string to accomodate a 140 character tweet.
 int wait_for_message()
 {
@@ -562,7 +563,8 @@ int wait_for_message()
     Serial.read();
   }
   
-  while(Serial.available() == 0) // Wait for a message to arrive
+  // Wait for the next message to arrive
+  while(Serial.available() == 0)
   {
     delay(500);
   }
@@ -573,28 +575,13 @@ int wait_for_message()
       numchars = MAX_CHARS - 1;
   }
   Serial.readBytes(serial_message, numchars);
-  serial_message[numchars] = '\0'; // Null terminate the string
   
-//  int index = 0;
-//  char inChar = 0x00;
-//  
-//  // Read all data available until the predefined limit.
-//  while(Serial.available() > 0) 
-//   {
-//       inChar = Serial.read(); // consumes a character
-//
-//      // Store only if we are within allowed bounds
-//       if(index < (MAX_CHARS -1)) 
-//       {
-//           serial_message[index] = inChar; // Store it
-//           index++; // Increment where to write next
-//       }
-//   }
-
-  char flushbuffer = 0x00;
-  while(Serial.available() > 0){
-    Serial.read();
+  // Check if the message will fit on the printable area.
+  if(numchars > MAX_PRINTABLE_CHARS){
+    numchars = MAX_PRINTABLE_CHARS;// Tuncate the message
   }
+  
+  serial_message[numchars] = '\0'; // Null terminate the string
    
    return numchars;
 }
@@ -614,7 +601,7 @@ void loop() {
   
   // Print the message
   String message = String(serial_message);      
-  Serial.write(serial_message);
+  //Serial.write(serial_message);
   printMessage(message);
   go_backwards();// Reverse motor to return home after a message is printed
   
